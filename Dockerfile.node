@@ -1,0 +1,19 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+
+# Installation des dépendances
+RUN npm install
+# Installations globales
+RUN npm install -g nodemon
+
+# Copie du code source
+COPY . .
+
+# Exposition des ports
+EXPOSE 5000
+
+# Commande de démarrage
+CMD ["npm", "run", "dev"]
