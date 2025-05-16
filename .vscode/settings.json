@@ -1,0 +1,52 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "files.autoSave": "onFocusChange",
+  "workbench.editor.limit.enabled": true,
+  "workbench.editor.limit.value": 6,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "always",
+    "source.addMissingImports.ts": "always",
+    "source.removeUnusedImports": "always"
+  },
+  "typescript.inlayHints.variableTypes.enabled": true,
+  "typescript.inlayHints.parameterNames.enabled": "all",
+  "editor.tabSize": 2,
+  "editor.fontFamily": "commitMono",
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2
+  },
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.tabSize": 4
+  },
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": true,
+  "python.formatting.provider": "none",
+  "python.analysis.extraPaths": ["${workspaceFolder}/python-ai", "/app"],
+
+  // Configurations Docker
+  "docker.host": "unix:///var/run/docker.sock",
+  "docker.composeDetached": true,
+  "docker.composeFile": "docker-compose.dev.yml",
+
+  // Configuration Python dans Docker
+  "python.defaultInterpreterPath": "/usr/local/bin/python",
+
+  // Configuration Node.js dans Docker
+  "eslint.workingDirectories": ["./backend", "./lucie-ui"],
+
+  // Configuration pour le débogage à distance
+  "remote.SSH.remotePlatform": "linux"
+}

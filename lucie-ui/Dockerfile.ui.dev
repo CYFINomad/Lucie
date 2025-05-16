@@ -1,0 +1,16 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Installation d'outils supplémentaires et des dépendances de développement
+RUN apk add --no-cache bash git curl
+
+# Copie et installation des dépendances
+COPY package*.json ./
+RUN npm install
+
+# Exposition du port pour l'application React
+EXPOSE 3000
+
+# cmd est remplacé par docker-compose
+CMD ["npm", "start"]

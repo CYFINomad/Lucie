@@ -1,0 +1,37 @@
+{
+  "name": "Lucie Development Environment",
+  "dockerComposeFile": ["../docker-compose.dev.yml"],
+  "service": "lucie-node",
+  "workspaceFolder": "/app",
+  "shutdownAction": "stopCompose",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash",
+        "editor.formatOnSave": true,
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "python.formatting.provider": "black"
+      },
+      "extensions": [
+        "ms-azuretools.vscode-docker",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.black-formatter",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "redhat.vscode-yaml",
+        "pkief.material-icon-theme",
+        "christian-kohler.path-intellisense",
+        "mikestead.dotenv",
+        "eamodio.gitlens",
+        "github.copilot",
+        "gruntfuggly.todo-tree",
+        "ms-vscode.js-debug"
+      ]
+    }
+  },
+  "forwardPorts": [3000, 5000, 8000, 7474, 7687, 6379, 8081],
+  "remoteUser": "root"
+}
