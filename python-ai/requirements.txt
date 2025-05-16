@@ -18,3 +18,4 @@ requests==2.31.0
 httpx==0.25.1
 tenacity==8.2.3
 snyk-python-agent==0.3.0
+debugpy>=1.6.7
