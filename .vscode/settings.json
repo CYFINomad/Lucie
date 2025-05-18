@@ -35,9 +35,6 @@
   "python.linting.pylintEnabled": true,
   "python.formatting.provider": "none",
   "python.analysis.extraPaths": ["${workspaceFolder}/python-ai", "/app"],
-
-  // Configurations Docker
-  "docker.host": "unix:///var/run/docker.sock",
   "docker.composeDetached": true,
   "docker.composeFile": "docker-compose.dev.yml",
 
@@ -48,5 +45,9 @@
   "eslint.workingDirectories": ["./backend", "./lucie-ui"],
 
   // Configuration pour le débogage à distance
-  "remote.SSH.remotePlatform": "linux"
+  "remote.SSH.remotePlatform": "linux",
+  "docker.environment": {
+    "DOCKER_HOST": "unix:///var/run/docker.sock"
+  },
+  "cSpell.words": ["containter"]
 }
