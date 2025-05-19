@@ -29,3 +29,10 @@ Lucie est conçue comme une extension personnelle de votre cerveau, vous assista
    ```bash
    git clone https://github.com/votre-nom/lucie.git
    cd lucie
+   docker-compose -f docker-compose.dev.yml up -d
+   ```
+
+View log : `docker logs containter-name`
+Rebuild container: `docker-compose build`
+Delete all container : `docker rm -f $(docker ps -aq)`
+Delete all images : `docker system prune -a --volumes`

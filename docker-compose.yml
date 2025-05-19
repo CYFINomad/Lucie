@@ -1,15 +1,14 @@
-version: '3.8'
-
 services:
   lucie-node:
     build:
       context: ./backend
-      dockerfile: Dockerfile.node
+      dockerfile: Dockerfile.node.dev
     volumes:
       - ./backend:/app
-      - /app/node_modules
+      - node_modules:/app/node_modules
     ports:
       - "5000:5000"
+      - "9229:9229"
     environment:
       - NODE_ENV=development
       - PYTHON_API_URL=http://lucie-python:8000
@@ -22,18 +21,27 @@ services:
       - lucie-python
       - neo4j
       - redis
-    restart: unless-stopped
     networks:
       - lucie-network
+    command: npm run dev
+    # Active le debugger pour VS Code
+    security_opt:
+      - seccomp:unconfined
+    # Support pour le debugger
+    cap_add:
+      - SYS_PTRACE
 
   lucie-python:
     build:
       context: ./python-ai
-      dockerfile: Dockerfile.python
+      dockerfile: Dockerfile.python.dev
     volumes:
       - ./python-ai:/app
+      - python_packages:/usr/local/lib/python3.11/site-packages
     ports:
       - "8000:8000"
+      - "50051:50051"
+      - "5678:5678" # Pour le debugging Python
     environment:
       - PYTHONUNBUFFERED=1
       - DEBUG=True
@@ -41,28 +49,33 @@ services:
       - NEO4J_USER=neo4j
       - NEO4J_PASSWORD=password
       - REDIS_URL=redis://redis:6379
+      - WEAVIATE_URL=http://weaviate:8080
     depends_on:
       - neo4j
       - redis
-    restart: unless-stopped
     networks:
       - lucie-network
+    command: >
+      sh -c "python -m debugpy --listen 0.0.0.0:5678 -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload"
 
   lucie-ui:
     build:
       context: ./lucie-ui
-      dockerfile: Dockerfile.ui
+      dockerfile: Dockerfile.ui.dev
     volumes:
       - ./lucie-ui:/app
-      - /app/node_modules
+      - ui_node_modules:/app/node_modules
     ports:
       - "3000:3000"
     environment:
+      - CHOKIDAR_USEPOLLING=true
       - REACT_APP_API_URL=http://localhost:5000
+      - WDS_SOCKET_PORT=3000
     depends_on:
       - lucie-node
     networks:
       - lucie-network
+    command: npm start
 
   neo4j:
     image: neo4j:5.14.0
@@ -88,12 +101,27 @@ services:
       - redis_data:/data
     networks:
       - lucie-network
+    command: redis-server --appendonly yes
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    depends_on:
+      - redis
+    networks:
+      - lucie-network
 
 networks:
   lucie-network:
     driver: bridge
 
 volumes:
+  node_modules:
+  python_packages:
+  ui_node_modules:
   neo4j_data:
   neo4j_logs:
   redis_data:
