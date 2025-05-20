@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   lucie-node:
     build:
@@ -17,6 +19,10 @@ services:
       - NEO4J_USER=neo4j
       - NEO4J_PASSWORD=password
       - REDIS_URL=redis://redis:6379
+      - FEATURE_MULTI_AI=false
+      - FEATURE_VOICE_INPUT=true
+      - FEATURE_AVATAR_VISUAL=true
+      - FEATURE_PROACTIVE=true
     depends_on:
       - lucie-python
       - neo4j
@@ -53,6 +59,7 @@ services:
     depends_on:
       - neo4j
       - redis
+      - weaviate
     networks:
       - lucie-network
     command: >
@@ -103,6 +110,31 @@ services:
       - lucie-network
     command: redis-server --appendonly yes
 
+  weaviate:
+    image: semitechnologies/weaviate:1.22.4
+    ports:
+      - "8080:8080"
+    environment:
+      - QUERY_DEFAULTS_LIMIT=20
+      - AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true
+      - PERSISTENCE_DATA_PATH=/var/lib/weaviate
+      - DEFAULT_VECTORIZER_MODULE=text2vec-transformers
+      - ENABLE_MODULES=text2vec-transformers
+      - TRANSFORMERS_INFERENCE_API=http://t2v-transformers:8080
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    depends_on:
+      - t2v-transformers
+    networks:
+      - lucie-network
+
+  t2v-transformers:
+    image: semitechnologies/transformers-inference:sentence-transformers-multi-qa-MiniLM-L6-cos-v1
+    environment:
+      - ENABLE_CUDA=0
+    networks:
+      - lucie-network
+
   redis-commander:
     image: rediscommander/redis-commander:latest
     ports:
@@ -125,3 +157,4 @@ volumes:
   neo4j_data:
   neo4j_logs:
   redis_data:
+  weaviate_data:

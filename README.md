@@ -32,6 +32,22 @@ Lucie est conçue comme une extension personnelle de votre cerveau, vous assista
    docker-compose -f docker-compose.dev.yml up -d
    ```
 
+Remplacez les fichiers existants par ces nouvelles versions:
+bash# Dans le répertoire principal de votre projet
+`cp python-ai/Dockerfile.python.dev python-ai/Dockerfile.python.dev.bak`
+`cp lucie-ui/Dockerfile.ui.dev lucie-ui/Dockerfile.ui.dev.bak`
+
+# Créez les nouveaux fichiers avec le contenu que je vous ai fourni
+
+Reconstruisez les images Docker avec les nouvelles configurations:
+`bashdocker-compose -f docker-compose.dev.yml down`
+`docker-compose -f docker-compose.dev.yml build lucie-python lucie-ui`
+`docker-compose -f docker-compose.dev.yml up -d`
+
+Vérifiez que tout fonctionne correctement:
+`docker-compose -f docker-compose.dev.yml ps`
+`docker-compose -f docker-compose.dev.yml logs lucie-python lucie-ui`
+
 View log : `docker logs containter-name`
 Rebuild container: `docker-compose build`
 Delete all container : `docker rm -f $(docker ps -aq)`
