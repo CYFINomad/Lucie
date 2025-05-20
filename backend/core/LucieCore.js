@@ -5,6 +5,9 @@
 
 const logger = require("../utils/logger");
 const config = require("../utils/config");
+const {
+  extendLucieCoreWithAgents,
+} = require("../agents/lucie-core-agents-integration");
 
 class LucieCore {
   constructor() {
@@ -13,6 +16,9 @@ class LucieCore {
     this.services = {};
     this.startTime = new Date();
     logger.info("Instance LucieCore créée");
+
+    // Étendre avec le système d'agents
+    extendLucieCoreWithAgents(this);
   }
 
   /**
@@ -25,6 +31,8 @@ class LucieCore {
 
       // Initialiser la communication avec Python
       const PythonBridge = require("../python-bridge/grpcClient");
+      // Utiliser le bridge amélioré à la place
+      // const PythonBridge = require("../python-bridge/enhancedPythonBridge");
       this.registerComponent("pythonBridge", new PythonBridge());
 
       // Initialiser la base de connaissances
@@ -44,18 +52,6 @@ class LucieCore {
       // Initialiser la base de données vectorielle
       const VectorDatabase = require("./VectorDatabase");
       this.registerComponent("vectorDatabase", new VectorDatabase());
-
-      // Initialiser le registre des agents (si disponible)
-      if (config.features.agents) {
-        try {
-          const AgentRegistry = require("../domains/agents/services/agentRegistry");
-          this.registerComponent("agentRegistry", new AgentRegistry());
-        } catch (error) {
-          logger.warn("Module d'agents non disponible", {
-            error: error.message,
-          });
-        }
-      }
 
       // Enregistrer les services de base
       this.services = {

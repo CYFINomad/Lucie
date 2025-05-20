@@ -16,9 +16,9 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
 import ResponseDisplay from "./ResponseDisplay";
-import LucieAvatar from "../assistant/LucieAvatar";
+import LucieAvatarEnhanced from "../assistant/LucieAvatarEnhanced";
 import ProactivePanel from "../assistant/ProactivePanel";
-import axios from "axios";
+import useChatState from "../../hooks/useChatState";
 
 /**
  * Interface principale de chat pour Lucie
@@ -26,14 +26,19 @@ import axios from "axios";
  */
 const EnhancedChatInterface = () => {
   const theme = useTheme();
-  const [messages, setMessages] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const {
+    messages,
+    isLoading,
+    error,
+    suggestions,
+    sendMessage,
+    loadSuggestions,
+  } = useChatState();
+
   const [avatarState, setAvatarState] = useState("neutral");
   const [showAvatar, setShowAvatar] = useState(true);
-  const [showProactive, setShowProactive] = useState(false);
-  const [suggestions, setSuggestions] = useState([]);
+  const [showProactive, setShowProactive] = useState(true);
   const messagesEndRef = useRef(null);
-  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
   // Faire défiler vers le bas quand de nouveaux messages sont ajoutés
   const scrollToBottom = () => {
@@ -44,104 +49,66 @@ const EnhancedChatInterface = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Générer quelques suggestions basiques (à terme serait basé sur l'analyse du contexte)
+  // Mettre à jour les suggestions et l'affichage du panneau proactif
   useEffect(() => {
-    const defaultSuggestions = [
-      "Qu'est-ce que tu peux faire?",
-      "Comment fonctionne ton système d'agents?",
-      "Aide-moi à comprendre comment utiliser Lucie",
-    ];
-
-    setSuggestions(defaultSuggestions);
-
-    // À terme, ce serait une API call pour récupérer des suggestions contextuelles
     // Si les messages sont vides, on montre le panneau proactif
-    setShowProactive(messages.length === 0);
-  }, [messages.length]);
+    setShowProactive(messages.length === 0 && !isLoading);
+  }, [messages.length, isLoading]);
 
-  // Déterminer l'état de l'avatar en fonction du contexte
-  const updateAvatarState = (state) => {
-    setAvatarState(state);
-  };
+  // Mettre à jour l'état de l'avatar en fonction du contexte
+  useEffect(() => {
+    if (isLoading) {
+      setAvatarState("processing");
+    } else if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.sender === "lucie") {
+        if (lastMessage.isError) {
+          setAvatarState("error");
+          // Revenir à l'état neutre après 2 secondes
+          const timer = setTimeout(() => {
+            setAvatarState("neutral");
+          }, 2000);
+          return () => clearTimeout(timer);
+        } else {
+          setAvatarState("speaking");
+          // Revenir à l'état neutre après 1 seconde
+          const timer = setTimeout(() => {
+            setAvatarState("neutral");
+          }, 1000);
+          return () => clearTimeout(timer);
+        }
+      }
+    }
+  }, [isLoading, messages]);
 
   // Traiter l'envoi d'un nouveau message
   const handleSendMessage = async (messageText) => {
     if (!messageText.trim()) return;
 
-    // Mise à jour de l'état de l'avatar
-    updateAvatarState("processing");
+    // Mise à jour de l'avatar pendant le traitement
+    setAvatarState("processing");
 
     // Masquer les suggestions proactives lors de l'envoi du message
     setShowProactive(false);
 
-    // Ajouter le message utilisateur à la conversation
-    const userMessage = {
-      id: Date.now().toString(),
-      content: messageText,
-      sender: "user",
-      timestamp: new Date().toISOString(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setIsLoading(true);
-
     try {
-      // Appel à l'API pour traiter le message
-      const response = await axios.post(`${API_URL}/api/chat/message`, {
-        message: messageText,
-        context: {
-          // Contexte pertinent, comme l'historique récent
-          recentMessages: messages.slice(-5).map((m) => ({
-            content: m.content,
-            sender: m.sender,
-          })),
-        },
-      });
+      // Envoyer le message via le hook useChatState
+      await sendMessage(messageText);
 
-      // Créer le message de réponse de Lucie
-      const lucieMessage = {
-        id: response.data.messageId || Date.now().toString() + 1,
-        content: response.data.response,
-        sender: "lucie",
-        timestamp: response.data.timestamp || new Date().toISOString(),
-        featureStatus: response.data.featureStatus || null,
-        intent: response.data.intent || "unknown",
-        confidence: response.data.confidence || 1.0,
-      };
+      // Avatar passe en mode "speaking" après l'envoi du message
+      setAvatarState("speaking");
 
-      // Mise à jour de l'avatar pendant la "réponse"
-      updateAvatarState("speaking");
-
-      // Ajouter la réponse avec un court délai pour l'effet visuel
+      // Puis revient en mode neutre après un court délai
       setTimeout(() => {
-        setMessages((prev) => [...prev, lucieMessage]);
-        setIsLoading(false);
-
-        // Revenir à l'état neutre après la réponse
-        setTimeout(() => {
-          updateAvatarState("neutral");
-        }, 1000);
-      }, 500);
+        setAvatarState("neutral");
+      }, 1000);
     } catch (error) {
       console.error("Erreur lors de l'envoi du message:", error);
-
-      // Message d'erreur en cas d'échec
-      const errorMessage = {
-        id: Date.now().toString() + 1,
-        content:
-          "Je suis désolée, j'ai rencontré une erreur lors du traitement de votre message. Veuillez réessayer.",
-        sender: "lucie",
-        timestamp: new Date().toISOString(),
-        isError: true,
-      };
-
-      setMessages((prev) => [...prev, errorMessage]);
-      setIsLoading(false);
-      updateAvatarState("error");
+      setAvatarState("error");
 
       // Revenir à l'état neutre après l'erreur
       setTimeout(() => {
-        updateAvatarState("neutral");
+        setAvatarState("neutral");
       }, 2000);
     }
   };
@@ -149,6 +116,11 @@ const EnhancedChatInterface = () => {
   // Gérer l'utilisation d'une suggestion
   const handleSuggestionClick = (suggestion) => {
     handleSendMessage(suggestion);
+  };
+
+  // Mise à jour de l'état de l'avatar par l'entrée vocale
+  const updateAvatarState = (state) => {
+    setAvatarState(state);
   };
 
   return (
@@ -214,7 +186,11 @@ const EnhancedChatInterface = () => {
             transition: "height 0.5s ease",
           }}
         >
-          <LucieAvatar state={avatarState} size={showAvatar ? 200 : 0} />
+          {/* Utiliser l'avatar amélioré */}
+          <LucieAvatarEnhanced
+            state={avatarState}
+            size={showAvatar ? 200 : 0}
+          />
         </Box>
       </Collapse>
 
@@ -282,6 +258,25 @@ const EnhancedChatInterface = () => {
           <ResponseDisplay />
         </Box>
       </Fade>
+
+      {/* Message d'erreur si présent */}
+      {error && (
+        <Fade in={!!error}>
+          <Paper
+            elevation={3}
+            sx={{
+              p: 2,
+              mt: 2,
+              borderRadius: 2,
+              backgroundColor: theme.palette.error.dark,
+              color: theme.palette.error.contrastText,
+              boxShadow: `0 0 10px ${theme.palette.error.main}`,
+            }}
+          >
+            <Typography variant="body2">{error}</Typography>
+          </Paper>
+        </Fade>
+      )}
     </Box>
   );
 };

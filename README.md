@@ -37,8 +37,6 @@ bash# Dans le répertoire principal de votre projet
 `cp python-ai/Dockerfile.python.dev python-ai/Dockerfile.python.dev.bak`
 `cp lucie-ui/Dockerfile.ui.dev lucie-ui/Dockerfile.ui.dev.bak`
 
-# Créez les nouveaux fichiers avec le contenu que je vous ai fourni
-
 Reconstruisez les images Docker avec les nouvelles configurations:
 `bashdocker-compose -f docker-compose.dev.yml down`
 `docker-compose -f docker-compose.dev.yml build lucie-python lucie-ui`
