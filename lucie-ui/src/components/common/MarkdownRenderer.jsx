@@ -175,7 +175,7 @@ const MarkdownRenderer = ({ content }) => {
             }}
             {...props}
           >
-            {String(children).replace(/\n$/, "")}
+            {String(children).replace(/\r?\n$/, "")}
           </SyntaxHighlighter>
         </Box>
       ) : (

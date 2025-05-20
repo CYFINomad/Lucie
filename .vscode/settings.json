@@ -49,8 +49,8 @@
   "docker.environment": {
     "DOCKER_HOST": "unix:///var/run/docker.sock"
   },
-  "cSpell.enabled": true,
+  "cSpell.enabled": false,
   "cSpell.language": "en,fr",
-  "cSpell.words": ["containter", "exemple", "élément"],
+  "cSpell.words": ["containter", "élément", "exemple", "pytest"],
   "cSpell.ignorePaths": ["node_modules", "dist"]
 }
