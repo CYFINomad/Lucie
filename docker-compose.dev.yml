@@ -63,7 +63,7 @@ services:
     networks:
       - lucie-network
     command: >
-      sh -c "python -m debugpy --listen 0.0.0.0:5678 -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload"
+      sh -c "pip install debugpy && python -m debugpy --listen 0.0.0.0:5678 -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload"
 
   lucie-ui:
     build:

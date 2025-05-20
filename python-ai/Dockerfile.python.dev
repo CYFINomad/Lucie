@@ -48,7 +48,7 @@ RUN pip install --no-cache-dir pytest==7.4.3 pytest-cov==4.1.0 black==23.10.1 py
 RUN pip install --no-cache-dir scikit-learn>=1.3.0 nltk>=3.8.1
 
 # Installer les autres dépendances
-RUN pip install --no-cache-dir requests==2.31.0 httpx==0.25.1 tenacity==8.2.3 debugpy>=1.6.7
+RUN pip install --no-cache-dir requests==2.31.0 httpx==0.25.1 tenacity==8.2.3 debugpy
 
 # Télécharger les ressources NLTK nécessaires pour NLP
 RUN python -m nltk.downloader punkt stopwords wordnet omw-1.4
