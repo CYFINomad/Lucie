@@ -2,15 +2,16 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Installation des outils de développement
-RUN apk add --no-cache bash git curl python3
-
-# Copie et installation des dépendances
+# Install dependencies first (better caching)
 COPY package*.json ./
 RUN npm install
-RUN npm install -g nodemon
 
-# Expose des ports pour l'API et le débogueur
-EXPOSE 5000 9229
+# Copy the rest of the application
+COPY . .
 
+# Expose ports
+EXPOSE 5000
+EXPOSE 9229
+
+# Start the development server
 CMD ["npm", "run", "dev"]

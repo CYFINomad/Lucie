@@ -2,45 +2,15 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Installation d'outils supplémentaires pour le développement
-RUN apk add --no-cache bash git curl python3 make g++ libc6-compat
-
-# Amélioration du cache pour npm
-RUN npm config set cache /tmp/npm-cache --global
-
-# Copier les fichiers de configuration des packages
+# Install dependencies first (better caching)
 COPY package*.json ./
-
-# Installer les dépendances du projet
 RUN npm install
 
-# Installer les packages React supplémentaires nécessaires pour l'UI
-RUN npm install --save \
-    @emotion/react \
-    @emotion/styled \
-    @mui/icons-material \
-    @mui/material \
-    @mui/system \
-    framer-motion \
-    react-markdown \
-    react-syntax-highlighter \
-    date-fns \
-    axios \
-    socket.io-client \
-    uuid
+# Copy the rest of the application
+COPY . .
 
-# Installer les outils de développement
-RUN npm install --save-dev \
-    eslint \
-    eslint-plugin-react \
-    eslint-plugin-react-hooks \
-    prettier
-
-# Créer un fichier .env de développement par défaut
-RUN echo "REACT_APP_API_URL=http://localhost:5000" > .env.development
-
-# Exposition du port pour l'application React
+# Expose port
 EXPOSE 3000
 
-# Commande pour démarrer le serveur de développement avec rechargement à chaud
+# Start the development server
 CMD ["npm", "start"]
