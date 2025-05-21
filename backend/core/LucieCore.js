@@ -27,33 +27,9 @@ class LucieCore {
    */
   async initialize() {
     try {
-      logger.info("Initialisation du noyau Lucie...");
+      logger.info("Initializing Lucie Core...");
 
-      // Initialiser la communication avec Python
-      const PythonBridge = require("../python-bridge/grpcClient");
-      // Utiliser le bridge amélioré à la place
-      // const PythonBridge = require("../python-bridge/enhancedPythonBridge");
-      this.registerComponent("pythonBridge", new PythonBridge());
-
-      // Initialiser la base de connaissances
-      const KnowledgeBase = require("./KnowledgeBase");
-      this.registerComponent(
-        "knowledgeBase",
-        new KnowledgeBase(this.getComponent("pythonBridge"))
-      );
-
-      // Initialiser le moteur d'apprentissage
-      const LearningEngine = require("./LearningEngine");
-      this.registerComponent(
-        "learningEngine",
-        new LearningEngine(this.getComponent("pythonBridge"))
-      );
-
-      // Initialiser la base de données vectorielle
-      const VectorDatabase = require("./VectorDatabase");
-      this.registerComponent("vectorDatabase", new VectorDatabase());
-
-      // Enregistrer les services de base
+      // Setup basic services even if other components fail
       this.services = {
         state: {
           conversationState: {},
@@ -63,24 +39,103 @@ class LucieCore {
         },
         version: config.version || "0.1.0",
         startTime: this.startTime,
-        features: config.features,
-        environment: config.environment,
+        features: config.features || {
+          FEATURE_MULTI_AI: false,
+          FEATURE_VOICE_INPUT: true,
+          FEATURE_AVATAR_VISUAL: true,
+          FEATURE_PROACTIVE: false,
+        },
+        environment: config.environment || "development",
       };
+      
+      try {
+        // Initialize Python communication
+        const PythonBridge = require("../python-bridge/grpcClient");
+        const pythonBridge = new PythonBridge();
+        this.registerComponent("pythonBridge", pythonBridge);
+        logger.info("Python Bridge component registered");
+        
+        // Don't wait for initialization - let it happen in the background
+        pythonBridge.initialize().catch(error => {
+          logger.error("Failed to initialize Python Bridge - continuing with limited functionality", {
+            error: error.message,
+            stack: error.stack,
+          });
+        });
+      } catch (bridgeError) {
+        logger.error("Failed to initialize Python Bridge - continuing with limited functionality", {
+          error: bridgeError.message,
+          stack: bridgeError.stack,
+        });
+      }
+
+      try {
+        // Initialize the knowledge base if Python Bridge is available
+        if (this.getComponent("pythonBridge")) {
+          const KnowledgeBase = require("./KnowledgeBase");
+          this.registerComponent(
+            "knowledgeBase",
+            new KnowledgeBase(this.getComponent("pythonBridge"))
+          );
+          logger.info("Knowledge Base component registered");
+        }
+      } catch (kbError) {
+        logger.error("Failed to initialize Knowledge Base - continuing with limited functionality", {
+          error: kbError.message,
+          stack: kbError.stack,
+        });
+      }
+
+      try {
+        // Initialize the learning engine if Python Bridge is available
+        if (this.getComponent("pythonBridge")) {
+          const LearningEngine = require("./LearningEngine");
+          this.registerComponent(
+            "learningEngine",
+            new LearningEngine(this.getComponent("pythonBridge"))
+          );
+          logger.info("Learning Engine component registered");
+        }
+      } catch (leError) {
+        logger.error("Failed to initialize Learning Engine - continuing with limited functionality", {
+          error: leError.message,
+          stack: leError.stack,
+        });
+      }
+
+      try {
+        // Initialize the vector database (doesn't depend on Python Bridge)
+        const VectorDatabase = require("./VectorDatabase");
+        this.registerComponent("vectorDatabase", new VectorDatabase());
+        logger.info("Vector Database component registered");
+      } catch (vdbError) {
+        logger.error("Failed to initialize Vector Database - continuing with limited functionality", {
+          error: vdbError.message,
+          stack: vdbError.stack,
+        });
+      }
 
       this.initialized = true;
-      logger.info("Noyau Lucie initialisé avec succès", {
+      logger.info("Lucie Core initialized successfully", {
         componentsCount: this.components.size,
-        enabledFeatures: Object.keys(config.features).filter(
-          (key) => config.features[key]
+        componentsList: Array.from(this.components.keys()).join(", "),
+        enabledFeatures: Object.keys(this.services.features).filter(
+          (key) => this.services.features[key]
         ),
       });
+      
       return true;
     } catch (error) {
-      logger.error("Erreur lors de l'initialisation du noyau Lucie:", {
+      logger.error("Error in Lucie Core initialization:", {
         error: error.message,
         stack: error.stack,
       });
-      throw error;
+      
+      // Even if we have errors, mark as initialized with limited functionality
+      this.initialized = true;
+      
+      // No need to throw - server should continue running for diagnostics
+      return false;
     }
   }
 

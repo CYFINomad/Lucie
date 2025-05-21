@@ -1,0 +1,126 @@
+syntax = "proto3";
+
+package lucie;
+
+// Main service definition
+service LucieService {
+  // Process a user message and return a response
+  rpc ProcessMessage (Message) returns (Response);
+  
+  // Get knowledge from the knowledge base
+  rpc GetKnowledge (KnowledgeRequest) returns (KnowledgeResponse);
+  
+  // Store user feedback
+  rpc StoreFeedback (Feedback) returns (FeedbackResponse);
+  
+  // Get learning status
+  rpc GetLearningStatus (LearningStatusRequest) returns (LearningStatusResponse);
+  
+  // Multi-AI orchestration
+  rpc ExecuteAITask (AITaskRequest) returns (AITaskResponse);
+}
+
+// Status enum for responses
+enum Status {
+  SUCCESS = 0;
+  ERROR = 1;
+  PARTIAL = 2;
+}
+
+// Basic message structure
+message Message {
+  string id = 1;
+  string content = 2;
+  string user_id = 3;
+  string session_id = 4;
+  map<string, string> metadata = 5;
+  repeated Attachment attachments = 6;
+  int64 timestamp = 7;
+}
+
+// Message attachments
+message Attachment {
+  string type = 1;
+  string url = 2;
+  bytes data = 3;
+  map<string, string> metadata = 4;
+}
+
+// Response structure
+message Response {
+  string id = 1;
+  string content = 2;
+  Status status = 3;
+  map<string, string> metadata = 4;
+  repeated Action actions = 5;
+  int64 timestamp = 6;
+}
+
+// Action that can be taken by the client
+message Action {
+  string type = 1;
+  string description = 2;
+  map<string, string> parameters = 3;
+}
+
+// Knowledge request structure
+message KnowledgeRequest {
+  string query = 1;
+  repeated string contexts = 2;
+  float max_results = 3;
+  map<string, string> filters = 4;
+}
+
+// Knowledge response structure
+message KnowledgeResponse {
+  string content = 1;
+  float confidence = 2;
+  repeated string sources = 3;
+  map<string, string> metadata = 4;
+}
+
+// Feedback structure
+message Feedback {
+  string message_id = 1;
+  string response_id = 2;
+  int32 rating = 3;
+  string comment = 4;
+  string user_id = 5;
+  int64 timestamp = 6;
+}
+
+// Feedback response
+message FeedbackResponse {
+  bool success = 1;
+  string feedback_id = 2;
+}
+
+// Learning status request
+message LearningStatusRequest {
+  string user_id = 1;
+  string topic = 2;
+}
+
+// Learning status response
+message LearningStatusResponse {
+  bool active = 1;
+  map<string, float> progress = 2;
+  string status = 3;
+  int64 last_updated = 4;
+}
+
+// AI Task request
+message AITaskRequest {
+  string task_type = 1;
+  map<string, string> parameters = 2;
+  string preferred_provider = 3;
+  repeated string fallback_providers = 4;
+}
+
+// AI Task response
+message AITaskResponse {
+  string result = 1;
+  string provider_used = 2;
+  Status status = 3;
+  map<string, string> metadata = 4;
+} 

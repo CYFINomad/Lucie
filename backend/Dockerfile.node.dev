@@ -2,16 +2,33 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install dependencies first (better caching)
+# Install curl for healthcheck
+RUN apk add --no-cache curl
+
+# Copy package.json and package-lock.json
 COPY package*.json ./
+
+# Install dependencies
 RUN npm install
 
 # Copy the rest of the application
 COPY . .
 
+# Create wait script
+RUN echo '#!/bin/sh' > /wait-for-python.sh && \
+    echo 'echo "Waiting for Python API to be ready..."' >> /wait-for-python.sh && \
+    echo 'while ! curl -s http://lucie-python:8000/health > /dev/null; do' >> /wait-for-python.sh && \
+    echo '  echo "Python API not ready yet, retrying in 2 seconds..."' >> /wait-for-python.sh && \
+    echo '  sleep 2' >> /wait-for-python.sh && \
+    echo 'done' >> /wait-for-python.sh && \
+    echo 'echo "Python API is ready, starting Node.js server"' >> /wait-for-python.sh && \
+    echo 'exec "$@"' >> /wait-for-python.sh && \
+    chmod +x /wait-for-python.sh
+
 # Expose ports
 EXPOSE 5000
 EXPOSE 9229
 
-# Start the development server
+# Start the dev server with wait script
+ENTRYPOINT ["/wait-for-python.sh"]
 CMD ["npm", "run", "dev"]

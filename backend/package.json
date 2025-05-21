@@ -8,7 +8,9 @@
     "dev": "nodemon --inspect=0.0.0.0:9229 server.js",
     "test": "jest",
     "lint": "eslint .",
-    "security": "snyk test"
+    "security": "snyk test",
+    "generate-protos": "../scripts/generate_protos.sh",
+    "test:connectivity": "node ../scripts/tests/test_connectivity.js"
   },
   "dependencies": {
     "axios": "^1.6.7",

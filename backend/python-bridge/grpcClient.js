@@ -31,7 +31,7 @@ class EnhancedPythonBridge {
       timeout: config.pythonApi?.timeout || 30000,
       protoPath: path.join(
         __dirname,
-        "../../shared/communication/grpc/protos/lucie_service.proto"
+        "../../shared/protos/lucie.proto"
       ),
       reconnectAutomatically: true,
       healthCheckInterval: 30000, // 30 secondes

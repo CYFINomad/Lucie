@@ -28,6 +28,10 @@ show_help() {
   echo -e "  ${GREEN}test${NC}       Lance les tests"
   echo -e "  ${GREEN}status${NC}     Affiche l'état des conteneurs"
   echo -e "  ${GREEN}code${NC}       Ouvre VS Code avec la configuration de développement"
+  echo -e "  ${GREEN}protos${NC}     Génère les fichiers Protocol Buffers pour gRPC"
+  echo -e "  ${GREEN}verify${NC}     Vérifie la configuration de l'environnement"
+  echo -e "  ${GREEN}setup${NC}      Initialise l'environnement de développement"
+  echo -e "  ${GREEN}connect${NC}    Teste la connectivité entre les services"
   echo -e "  ${GREEN}help${NC}       Affiche cette aide"
 }
 
@@ -136,6 +140,27 @@ case "$1" in
     else
       echo -e "${RED}VS Code n'est pas installé ou n'est pas dans le PATH.${NC}"
     fi
+    ;;
+  
+  protos)
+    echo -e "${BLUE}Génération des fichiers Protocol Buffers pour gRPC...${NC}"
+    ./scripts/generate_protos.sh
+    echo -e "${GREEN}Génération terminée.${NC}"
+    ;;
+    
+  verify)
+    echo -e "${BLUE}Vérification de l'environnement...${NC}"
+    ./scripts/setup/verify_environment.sh
+    ;;
+    
+  setup)
+    echo -e "${BLUE}Initialisation de l'environnement de développement...${NC}"
+    ./scripts/setup/init_project.sh
+    ;;
+  
+  connect)
+    echo -e "${BLUE}Test de connectivité entre les services...${NC}"
+    cd backend && npm run test:connectivity
     ;;
   
   help)

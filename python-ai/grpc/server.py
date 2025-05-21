@@ -11,10 +11,20 @@ from utils.metrics import track_api_metrics
 # Import generated protobuf files
 # Note: These imports will be available after running the protobuf compiler
 try:
-    from grpc.protos import lucie_pb2, lucie_pb2_grpc
+    # Try relative import first
+    from .protos import lucie_pb2, lucie_pb2_grpc
 except ImportError:
-    logger.warning("Protobuf files not found. Please run the protobuf compiler first.")
-    raise
+    try:
+        # Try absolute import as fallback
+        from grpc.protos import lucie_pb2, lucie_pb2_grpc
+    except ImportError:
+        logger.warning(
+            "Protobuf files not found. Please run the protobuf compiler first."
+        )
+        logger.info(
+            "Run 'cd /app && ./scripts/generate_protos.sh' to generate protobuf files"
+        )
+        raise
 
 
 class LucieService(lucie_pb2_grpc.LucieServiceServicer):
